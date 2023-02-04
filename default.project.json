@@ -1,0 +1,24 @@
+{
+  "name": "leith-catalog",
+  "tree": {
+    "$className": "DataModel",
+
+    "ServerScriptService": {
+      "Catalog Core": {
+        "$className":"Actor",
+        "Server": {
+          "$path": "src/server"
+        }
+      }
+    },
+
+    "StarterGui": {
+      "Catalog": {
+        "$className":"ScreenGui",
+        "UI Client": {
+          "$path": "src/client"
+        }
+      }
+    }
+  }
+}
