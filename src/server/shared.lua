@@ -23,6 +23,7 @@ local sv = {
 	dataStoreService = game:GetService("DataStoreService"),
 	runService = game:GetService("RunService"),
 	userInputService = game:GetService("UserInputService"),
+	insertService = game:GetService("InsertService"),
 }
 
 local dir = {
