@@ -67,10 +67,10 @@ local queue = function(plr:Player,cat,sq,np) -- player, category, search query, 
     end
     if data.url_extenders[cat] == nil then return { 2, "Unexpected error" } end
     local resp = get(data.base_url..data.url_extenders[cat].."&Limit=30&IncludeNotForSale&Keyword="..sv.httpService:UrlEncode(sq).."&Cursor="..np)
-    if typeof(resp) == "table" then
+    if not resp["errors"] then
         return { 1, resp }
     else
-        return { 2, "Rate limit", 10 }
+        return { 2, "Rate limit", 15 }
     end
 end
 
