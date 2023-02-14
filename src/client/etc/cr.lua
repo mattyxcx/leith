@@ -1,4 +1,4 @@
-local c = script.Parent.Parent.Cursor
+local c = script.Parent.Parent.Parent.pc.Cursor
 local t = require(script.Parent.tweens)(c)
 local m = game.Players.LocalPlayer:GetMouse()
 task.spawn(function() while true do task.wait() c.Position = UDim2.new(0,m.X,0,m.Y) end end)

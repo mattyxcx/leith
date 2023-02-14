@@ -24,6 +24,6 @@ return {
 	runService = game:GetService("RunService"),
 	userInputService = game:GetService("UserInputService"),
 	debris = game:GetService("Debris"),
-	templates = script.Parent.Parent.t,
+	pc_temp = script.Parent.Parent.Parent.pc.t,
 	server = game:GetService("ReplicatedStorage").Catalog.Remotes.RemoteFunction
 }

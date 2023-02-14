@@ -1,5 +1,5 @@
 local sv = require(script.Parent.sv)
-local m = script.Parent.Parent.Main.Notifications
+local m = script.Parent.Parent.Parent.pc.Main.Notifications
 
 local setupTweens = function(frame)
 	local children = frame:GetChildren(); table.insert(children,frame)
