@@ -57,28 +57,104 @@ local showBottom = function(cell)
     cell.Glow.ImageTransparency = 0.2
     main.Bottom.title.Text = cache.cell_data[cell].name
     main.Bottom.body.Text = "@"..cache.cell_data[cell].creatorName
-    main.Bottom.Icon.Icon.Image = "rbxthumb://type=Asset&id="..cache.cell_data[cell].id.."&w=150&h=150"
+    main.Bottom.Icon.Icon.Image = cell.Icon.Image
     cache.selected = cell
 end
 
-local showInv = function()
+local handleCell = function(cell)
+    cr(cell,cell.Name)
+    cc(cell)
+    cell.MouseEnter:Connect(function() cell.Glow.ImageTransparency = 0 end)
+    cell.MouseLeave:Connect(function() cell.Glow.ImageTransparency = 0.8 end)
+    cell.Activated:Connect(function() showBottom(cell) end)
+end
+
+local handleInv = function(cell,acc)
+    --cr(cell,cell.Name)
+    cc(cell)
+    cell.MouseEnter:Connect(function()
+        if cell.Active == false then return end
+        cell.Glow.ImageTransparency = 0
+        cell.Inner.ImageColor3 = Color3.fromRGB(172, 30, 49)
+        cell.UIStroke.Color = Color3.fromRGB(236, 40, 67)
+        cell.title.Visible = true
+    end)
+    cell.MouseLeave:Connect(function()
+        if cell.Active == false then return end
+        cell.Glow.ImageTransparency = 0.8
+        cell.Inner.ImageColor3 = Color3.fromRGB(150, 150, 150)
+        cell.UIStroke.Color = Color3.fromRGB(246, 246, 255)
+        cell.title.Visible = false
+    end)
+    cell.Activated:Connect(function()
+        cell.Active = false
+        cell.Inner.ImageColor3 = Color3.fromRGB(77, 11, 20)
+        cell.UIStroke.Color = Color3.fromRGB(131, 58, 68)
+        cell.Icon.ImageTransparency = 0.75
+        cell.title.Visible = false
+        cell.load.Visible = true
+        local resp = sv.server:InvokeServer("delete",acc)
+        if resp[1] == 1 then
+            notify("suc","Deleted successfully")
+            cell:Destroy()
+        else
+            cell.Active = true
+            cell.Glow.ImageTransparency = 0.8
+            cell.Inner.ImageColor3 = Color3.fromRGB(150, 150, 150)
+            cell.UIStroke.Color = Color3.fromRGB(246, 246, 255)
+            cell.Icon.ImageTransparency = 0
+            cell.load.Visible = false
+            notify("err","Could not delete accessory")
+        end
+    end)
+end
+
+local createCell = function(tbl)
+    local cell = sv.pc_temp.cell:Clone()
+    cache.cell_data[cell] = tbl
+    cell.Name = tbl.name
+    cell.Icon.Image = "rbxthumb://type=Asset&id="..tbl.id.."&w=150&h=150"
+    if tbl.itemType == "Bundle" then cell.Icon.Image = "rbxthumb://type=BundleThumbnail&id="..tbl.id.."&w=150&h=150" end
+    cell.Visible = true
+    handleCell(cell)
+    return cell
+end
+
+local fixInv = function()
     local createVpf = function(acc)
         local vpf = Instance.new("ViewportFrame")
         local cam = Instance.new("Camera")
-        acc:Clone().Parent = vpf
-        acc.Handle.CFrame = CFrame.new(0,0,0)
+        local clone = acc:Clone()
+        clone.Parent = vpf
+        clone.Handle.CFrame = CFrame.new(0,0,0)
+        clone.Handle:ClearAllChildren()
         vpf.Name = "Icon"
         vpf.Size = UDim2.new(1,0,1,0)
         vpf.ZIndex = 5
         vpf.CurrentCamera = cam
-        cam.CFrame = acc.ThumbnailConfiguration.ThumbnailCameraValue
+        vpf.BackgroundTransparency = 1
+        cam.CFrame = acc.ThumbnailConfiguration.ThumbnailCameraValue.Value
         cam.Parent = vpf
         return vpf
     end
-    for _,v in ipairs(sv.players.LocalPlayer.Character:GetChildren()) do
-        if v:IsA("Accessory") then
-            
+    cache.default_buttons.worn = { }
+    for _,v in ipairs(sv.players.LocalPlayer.Character.Humanoid:GetAccessories()) do
+        local cell = sv.pc_temp.inv:Clone()
+        local n = string.split(v.Name,"_")
+        if n[1] ~= "catalog" then
+            cell.Icon:Destroy()
+            local vpf = createVpf(v)
+            vpf.Parent = cell
+        else
+            cell.Icon.Image = "rbxthumb://type=Asset&id="..n[2].."&w=150&h=150"
         end
+        cell.Name = v.Name
+        cell.Visible = true
+        handleInv(cell,v)
+        table.insert(cache.default_buttons.worn,cell)
+    end
+    if cache.current_page.Name == "worn" then
+        for _,v in ipairs(cache.default_buttons.worn) do task.spawn(function() if v:IsA("TextButton") then v.Parent = cache.current_page end end) end
     end
 end
 
@@ -88,15 +164,17 @@ local switchPage = function(newPage)
         cache.current_page.load.Visible = false
         for _,v in ipairs(cache.current_page:GetChildren()) do task.spawn(function() if v:IsA("TextButton") then v.Parent = nil end end) end
     end
+    if newPage.Name == "worn" then fixInv(); end
     if cache.default_buttons[newPage.Name] ~= nil then
         for _,v in ipairs(cache.default_buttons[newPage.Name]) do task.spawn(function() if v:IsA("TextButton") then v.Parent = newPage end end) end
     end
-    transition({main.results_hint},"pulse"); task.delay(0.25,function() main.results_hint.Text = "Showing presets" end)
+    transition({main.results_hint},"pulse"); task.delay(0.25,function() main.results_hint.Text = (newPage.Name ~= "worn" and "Showing presets") or "Showing worn items" end)
     task.spawn(showBottom,nil)
     newPage.Visible = true
     newPage.load.Visible = true
     main.Search.TextBox.Text = ""
     main.Top.tab.Text = string.upper(string.sub(newPage.Name,1,1))..string.sub(newPage.Name,2,#newPage.Name)
+    if newPage.Name == "worn" or #cache.default_buttons[newPage.Name] < 30 then newPage.load.Visible = false end
     for _,v in ipairs(main.Options:GetChildren()) do
         if v:IsA("TextButton") then
             if string.split(v.Name,"_")[2] ~= newPage.Name then
@@ -110,31 +188,13 @@ local switchPage = function(newPage)
             end
         end
     end
-    if newPage.Name == "worn" then showInv() end
     cache.current_page = newPage
-end
-
-local handleCell = function(cell)
-    cr(cell,cell.Name)
-    cc(cell)
-    cell.MouseEnter:Connect(function() cell.Glow.ImageTransparency = 0 end)
-    cell.MouseLeave:Connect(function() cell.Glow.ImageTransparency = 0.8 end)
-    cell.Activated:Connect(function() showBottom(cell) end)
-end
-
-local createCell = function(tbl)
-    local cell = sv.pc_temp.cell:Clone()
-    cache.cell_data[cell] = tbl
-    cell.Name = tbl.name
-    cell.Icon.Image = "rbxthumb://type=Asset&id="..tbl.id.."&w=150&h=150"
-    cell.Visible = true
-    handleCell(cell)
-    return cell
 end
 
 local handleServerCallback = function(event,r)
     if event == "equip" then
         if r[1] == 1 then
+            fixInv()
             return notify("suc","Equipped successfully")
         elseif r[1] == 2 then
             return notify("err",r[2])
@@ -182,7 +242,7 @@ end
 
 local handlePageTurning = function(page)
     page:GetPropertyChangedSignal("CanvasPosition"):Connect(function()
-        if page.CanvasPosition.Y+page.AbsoluteSize.Y >= page.CanvasSize.Y.Offset-25 and page.ScrollingEnabled then
+        if page.CanvasPosition.Y+page.AbsoluteSize.Y >= page.CanvasSize.Y.Offset-25 and page.ScrollingEnabled and cache.cursors[cache.current_page] ~= nil then
             page.ScrollingEnabled = false
             cache.lastSearch = tick()
             local resp = sv.server:InvokeServer("search",{cache.current_page.Name,main.Search.TextBox.Text,cache.cursors[cache.current_page]})
@@ -198,8 +258,9 @@ local createPage = function(name)
     page.Visible = true
     page.Parent = main.Main
     page.UIGridLayout:GetPropertyChangedSignal("AbsoluteContentSize"):Connect(function() page.CanvasSize = UDim2.new(0,0,0,page.UIGridLayout.AbsoluteContentSize.Y+25) end)
+    if name == "worn" then return end
     local dir = { }
-    for i,tbl in ipairs(cache.presets[name][2].data) do
+    for _,tbl in ipairs(cache.presets[name][2].data) do
         local cell = createCell(tbl)
         cell.Parent = page
         table.insert(dir,cell)
