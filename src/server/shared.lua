@@ -27,9 +27,12 @@ local sv = {
 }
 
 local dir = {
-    ct_fld = sv.replicatedStorage.Catalog,
-    event = sv.replicatedStorage.Catalog.Remotes.RemoteEvent,
-    func = sv.replicatedStorage.Catalog.Remotes.RemoteFunction,
+    ct_fld = sv.replicatedStorage.M.Catalog,
+    an_fld = sv.replicatedStorage.M.Animations,
+    ct_event = sv.replicatedStorage.M.Catalog.Remotes.RemoteEvent,
+    ct_func = sv.replicatedStorage.M.Catalog.Remotes.RemoteFunction,
+    an_event = sv.replicatedStorage.M.Animations.Remotes.RemoteEvent,
+    an_func = sv.replicatedStorage.M.Animations.Remotes.RemoteFunction,
 }
 
 return { dir,sv }

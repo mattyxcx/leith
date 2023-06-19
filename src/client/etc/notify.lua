@@ -1,5 +1,4 @@
 local sv = require(script.Parent.sv)
-local m = script.Parent.Parent.Parent.pc.Main.Notifications
 
 local setupTweens = function(frame)
 	local children = frame:GetChildren(); table.insert(children,frame)
@@ -15,13 +14,14 @@ local setupTweens = function(frame)
 	return toReturn
 end
 
-local display = function(ntype,txt,persistent,callback)
-	local clone = m:FindFirstChild(ntype):Clone()
-	local textSize = sv.textService:GetTextSize(txt,12,Enum.Font.GothamSemibold,Vector2.new(m.AbsoluteSize.X,96))
+local display = function(x,...)
+	local ntype,txt,persistent,callback = ...
+	local clone = x:FindFirstChild(ntype):Clone()
+	local textSize = sv.textService:GetTextSize(txt,12,Enum.Font.GothamSemibold,Vector2.new(x.AbsoluteSize.X,96))
 	local tweens = setupTweens(clone); local cleared = false
 	clone.Name = tick(); clone.Text = txt; clone.UIScale.Scale = 0
 	clone.Visible = true
-	clone.Parent = m
+	clone.Parent = x
 	clone.Size = UDim2.new(0,textSize.X+22,0,textSize.Y+11)
 	for _,v in ipairs(tweens["open"]) do v:Play() end
 	local function cleanup()
@@ -36,4 +36,8 @@ local display = function(ntype,txt,persistent,callback)
 	return cleanup
 end
 
-return display
+local setup = function(frame)
+	return function(...) display(frame.Notifications,...) end
+end
+
+return setup

@@ -13,10 +13,26 @@
     },
 
     "StarterGui": {
-      "Catalog": {
+      "Base": {
         "$className":"ScreenGui",
-        "UI Client": {
-          "$path": "src/client"
+
+        "Animations": {
+          "$className":"Folder",
+          "anims_client":{
+            "$path": "src/client/anims"
+          }
+        },
+
+        "Catalog": {
+          "$className":"Folder",
+          "catalog_client":{
+            "$path": "src/client/catalog"
+          }
+        },
+
+        "etc": {
+          "$className": "Folder",
+          "$path": "src/client/etc"
         }
       }
     }

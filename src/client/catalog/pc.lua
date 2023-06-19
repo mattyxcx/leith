@@ -1,10 +1,10 @@
-local xdir = script.Parent.etc
+local xdir = script.Parent.Parent.Parent.etc
+local main = script.Parent.Parent.pc.Main
 local sv = require(xdir.sv)
 local cc = require(xdir.cc)
 local cr = require(xdir.cr)
 local sortTweens = require(xdir.tweens)
-local notify = require(xdir.notify)
-local main = script.Parent.Parent.pc.Main
+local notify = require(xdir.notify)(main)
 
 local cache = {
     tweens = { },
@@ -93,7 +93,7 @@ local handleInv = function(cell,acc)
         cell.Icon.ImageTransparency = 0.75
         cell.title.Visible = false
         cell.load.Visible = true
-        local resp = sv.server:InvokeServer("delete",acc)
+        local resp = sv.cat.server:InvokeServer("delete",acc)
         if resp[1] == 1 then
             notify("suc","Deleted successfully")
             cell:Destroy()
@@ -110,7 +110,7 @@ local handleInv = function(cell,acc)
 end
 
 local createCell = function(tbl)
-    local cell = sv.pc_temp.cell:Clone()
+    local cell = sv.cat.pc_temp.cell:Clone()
     cache.cell_data[cell] = tbl
     cell.Name = tbl.name
     cell.Icon.Image = "rbxthumb://type=Asset&id="..tbl.id.."&w=150&h=150"
@@ -139,7 +139,7 @@ local fixInv = function()
     end
     cache.default_buttons.worn = { }
     for _,v in ipairs(sv.players.LocalPlayer.Character.Humanoid:GetAccessories()) do
-        local cell = sv.pc_temp.inv:Clone()
+        local cell = sv.cat.pc_temp.inv:Clone()
         local n = string.split(v.Name,"_")
         if n[1] ~= "catalog" then
             cell.Icon:Destroy()
@@ -173,7 +173,7 @@ local switchPage = function(newPage)
     newPage.Visible = true
     newPage.load.Visible = true
     main.Search.TextBox.Text = ""
-    main.Top.tab.Text = string.upper(string.sub(newPage.Name,1,1))..string.sub(newPage.Name,2,#newPage.Name)
+    main.Top.tab.Text = "Viewing "..string.upper(string.sub(newPage.Name,1,1))..string.sub(newPage.Name,2,#newPage.Name)
     if newPage.Name == "worn" or #cache.default_buttons[newPage.Name] < 30 then newPage.load.Visible = false end
     for _,v in ipairs(main.Options:GetChildren()) do
         if v:IsA("TextButton") then
@@ -245,7 +245,7 @@ local handlePageTurning = function(page)
         if page.CanvasPosition.Y+page.AbsoluteSize.Y >= page.CanvasSize.Y.Offset-25 and page.ScrollingEnabled and cache.cursors[cache.current_page] ~= nil then
             page.ScrollingEnabled = false
             cache.lastSearch = tick()
-            local resp = sv.server:InvokeServer("search",{cache.current_page.Name,main.Search.TextBox.Text,cache.cursors[cache.current_page]})
+            local resp = sv.cat.server:InvokeServer("search",{cache.current_page.Name,main.Search.TextBox.Text,cache.cursors[cache.current_page]})
             handleServerCallback("extend",resp)
             page.ScrollingEnabled = true
         end
@@ -253,7 +253,7 @@ local handlePageTurning = function(page)
 end
 
 local createPage = function(name)
-    local page = sv.pc_temp.scroll:Clone()
+    local page = sv.cat.pc_temp.scroll:Clone()
     page.Name = name
     page.Visible = true
     page.Parent = main.Main
@@ -278,7 +278,7 @@ local createSearch = function()
     for _,v in ipairs(cache.current_page:GetChildren()) do if v:IsA("TextButton") then v.Parent = nil end end
     cache.current_page.load.Visible = false
     transition(main.Load:GetDescendants(),"show")
-    local resp = sv.server:InvokeServer("search",{cache.current_page.Name,main.Search.TextBox.Text,""})
+    local resp = sv.cat.server:InvokeServer("search",{cache.current_page.Name,main.Search.TextBox.Text,""})
     handleServerCallback("search",resp)
     transition(main.Load:GetDescendants(),"hide")
     cache.current_page.load.Visible = true
@@ -309,7 +309,7 @@ local handleButton = function(btns)
                     elseif func == "equip" then
                         if cache.selected == nil then return end
                         transition({btn.title},"hide"); transition({btn.ring},"show"); btn.ring.Visible = true
-                        local resp = sv.server:InvokeServer("apply",{cache.current_page.Name,cache.cell_data[cache.selected].id})
+                        local resp = sv.cat.server:InvokeServer("apply",{cache.current_page.Name,cache.cell_data[cache.selected].id})
                         handleServerCallback("equip",resp)
                         transition({btn.title},"show"); transition({btn.ring},"hide"); task.wait(0.35); btn.ring.Visible = false
                     elseif func == "buy" then
@@ -359,7 +359,7 @@ end
 local setup = function()
     cache.tweens = sortTweens(main)
     createIcon()
-    local resp = sv.server:InvokeServer("presets")
+    local resp = sv.cat.server:InvokeServer("presets")
     handleServerCallback("presets",resp)
     handleButton(main:GetDescendants())
     handleTextBox(main.Search.TextBox)

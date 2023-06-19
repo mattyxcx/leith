@@ -5,6 +5,7 @@ return function(frame)
         local results = {}
         local tweens = {hide={},show={},pulse={}}
         if v:IsA("Frame") then results[1] = {BackgroundTransparency = 1} results[2] = {BackgroundTransparency = v.BackgroundTransparency}
+        elseif v:IsA("ScrollingFrame") then results[1] = {BackgroundTransparency = 1, ScrollBarImageTransparency = 1} results[2] = {BackgroundTransparency = v.BackgroundTransparency, ScrollBarImageTransparency = v.ScrollBarImageTransparency}
         elseif v:IsA("ImageLabel") then results[1] = {BackgroundTransparency = 1, ImageTransparency = 1} results[2] = {BackgroundTransparency = v.BackgroundTransparency, ImageTransparency = v.ImageTransparency}
         elseif v:IsA("TextLabel") then results[1] = {TextTransparency = 1} results[2] = {TextTransparency = v.TextTransparency}
         elseif v:IsA("TextButton") then results[1] = {BackgroundTransparency = 1} results[2] = {BackgroundTransparency = v.BackgroundTransparency}

@@ -1,7 +1,8 @@
 local dir,sv = unpack(require(script.shared))
 local search = require(script.search)
 local cache = {
-    presets = nil
+    presets = nil,
+    anims = { }
 }
 
 local onInvoke = function(plr,header,args)
@@ -70,11 +71,64 @@ local onInvoke = function(plr,header,args)
             args:Destroy()
             return { 1 }
         else return { 2, "Unauthorised" } end
+    elseif header == "create anim" then
+        if args then
+            local info = sv.marketplaceService:GetProductInfo(args)
+            if info.AssetTypeId == 24 then
+                local anim = Instance.new("Animation")
+                anim.Name = info.Name
+                anim.AnimationId = "rbxassetid://"..args
+                cache.anims[info.Name] = anim
+                return { 1, { name = info.Name, assetId = args} }
+            else
+                return { 2, "AssetId provided is not an animation" }
+            end
+        else
+            return { 2, "Invalid argument" }
+        end
+    elseif header == "play anim" then
+        if args then
+            if #args[1] >= 0 then
+                if cache.anims[args[2]] ~= nil then
+                    for _,pn in ipairs(args[1]) do
+                        task.spawn(function()
+                            local h:Animator = sv.players[pn].Character.Humanoid.Animator
+                            for _,v in ipairs(h:GetPlayingAnimationTracks()) do v:Stop() end; task.wait(0.1)
+                            h:LoadAnimation(cache.anims[args[2]]):Play()
+                        end)
+                    end
+                    return { 1 }
+                else
+                    return { 2, "Invalid animation" }
+                end
+            else
+                return { 2, "No players selected" }
+            end
+        else
+            return { 2, "Invalid arguments" }
+        end
+    elseif header == "cancel anims" then
+        if args then
+            if #args >= 0 then
+                for _,pn in ipairs(args) do
+                    task.spawn(function()
+                        local h:Animator = sv.players[pn].Character.Humanoid.Animator
+                        for _,v in ipairs(h:GetPlayingAnimationTracks()) do v:Stop() end
+                    end)
+                end
+                return { 1 }
+            else
+                return { 2, "No players selected" }
+            end
+        else
+            return { 2, "Invalid arguments" }
+        end
     end
 end
 
 local setup = function()
-    dir.func.OnServerInvoke = onInvoke
+    dir.an_func.OnServerInvoke = onInvoke
+    dir.ct_func.OnServerInvoke = onInvoke
     local all = { }
     for _,v in ipairs({"hats","hair","faces","shirts","pants","layered","anims"}) do
         local succ

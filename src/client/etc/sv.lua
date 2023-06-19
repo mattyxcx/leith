@@ -24,6 +24,14 @@ return {
 	runService = game:GetService("RunService"),
 	userInputService = game:GetService("UserInputService"),
 	debris = game:GetService("Debris"),
-	pc_temp = script.Parent.Parent.Parent.pc.t,
-	server = game:GetService("ReplicatedStorage").Catalog.Remotes.RemoteFunction
+	cat = {
+		server = game:GetService("ReplicatedStorage").M.Catalog.Remotes.RemoteFunction,
+		pc_temp = script.Parent.Parent.Catalog.pc.t,
+		mob_temp = script.Parent.Parent.Catalog.mobile.t,
+	},
+	anims = {
+		server = game:GetService("ReplicatedStorage").M.Animations.Remotes.RemoteFunction,
+		pc_temp = script.Parent.Parent.Animations.pc.t,
+		mob_temp = script.Parent.Parent.Animations.mobile.t,
+	},
 }
